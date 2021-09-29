@@ -1,0 +1,327 @@
+ /****************************************Copyright(c)*****************************************************
+**                            Shenzhen Yuejiang Technology Co., LTD.
+**
+**                                 http://www.dobot.cc
+**--------------------------------------------------------------------------------------------------------
+** Modify by:           
+** Modified date:       2019-12-30
+** Version:             V1.1.1
+** Descriptions:        Test
+**--------------------------------------------------------------------------------------------------------
+*********************************************************************************************************/
+
+#include "Dobot.h"
+#include <SPI.h>
+#include "Pixy2.h"
+#include "Protocol.h"
+
+//初始位置，既摄像头检测物块位置
+#define Init_position_X 2.4788
+#define Init_position_Y 173.0646
+#define Init_position_Z 34.3719  
+#define Init_position_R 45.1875
+  
+//物块在传送带的位置
+#define block_position_X -8.0155                                              //物体在传送带上对于机械臂X轴的坐标      
+#define block_position_Y 279.7546                                                 //物体在传送带上对于机械臂Y轴的坐标     
+#define block_position_Z 12.3447                                              //物体在传送带上对于机械臂Z轴的坐标     
+#define block_position_R 46.6169                                                    //物体在传送带上对于机械臂R轴的坐标 
+
+//物块的放置位置（翻斗）
+#define des_position_X 192.7                                                  //物体对于翻斗模块的X轴坐标      
+#define des_position_Y -125.2                                                   //物体对于翻斗模块的Y轴坐标   
+#define des_position_Z 9                                                   //物体对于翻斗模块的Z轴坐标 
+#define des_position_R -87.3794                                                      //物体对于翻斗模块的R轴坐标     
+
+
+double arr_x[8] = {218.8258, 265.6998, 218.8258, 265.6998, 218.8258, 265.6998, 218.8258, 265.6998};
+double arr_y[8] = {112.4774, 112.7738, 61.0377, 61.0377, 16.0683, 16.0683, -40.3458, -40.3458};
+double arr_z[8] = {-43.7236, -43.7764, -43.7764, -43.7764, -43.7764, -43.7764, -43.7764, -43.7764};
+
+double arr_R_x[12] = {186.7929,
+                      186.7929,
+
+                      223.8746,
+                      223.8746,
+
+                      259.7053,
+                      259.7053,
+
+                      177.0518,
+                      177.0518,
+
+                      232,
+                      232,
+
+                      261,
+                      261};
+
+double arr_R_y[12] = {133.5183,
+                      133.5183,
+                      133.5183,
+                      133.5183,
+                      133.5183,
+                      133.5183,
+
+                      103,
+                      103,
+                      103,
+                      103,
+                      103,
+                      103};
+double arr_Z[12] = {-45, -20,
+                    -45, -20,
+                    -45, -20,
+                    -45, -20,
+                    -45, -20,
+                    -45, -20};
+
+double arr_G_x[12] = {   210.8601,
+                     210.8601,
+
+                      250.8746,
+                      250.8746,
+
+                      289.7053,
+                      289.7053,
+
+                     
+
+                       220.8601,
+                     220.8601,
+
+                      250.8746,
+                      250.8746,
+
+                      279.7053,
+                      279.7053
+                      };
+
+
+
+double arr_G_y[12] = {
+    65.2416,
+    65.2416,
+    65.2416,
+    65.2416,
+    65.2416,
+    65.2416,
+
+    34.9956,
+    34.9956,
+    34.9956,
+    34.9956,
+    34.9956,
+    34.9956,
+
+};
+
+
+
+
+double arr_B_x[12] = {
+                     200.8601,
+                     200.8601,
+
+                      230.8746,
+                      230.8746,
+
+                      259.7053,
+                      259.7053,
+
+                     
+
+                       200.8601,
+                     200.8601,
+
+                      230.8746,
+                      230.8746,
+
+                      259.7053,
+                      259.7053
+
+};
+double arr_B_y[12] = {
+    -2.5740,
+    -2.5740,
+    -2.5740,
+    -2.5740,
+    -2.5740,
+    -2.5740,
+    -37,
+    -37,
+    -37,
+    -37,
+    -37,
+    -37
+
+};
+
+double arr_Y_x[12] = {
+
+                     200.8601,
+                     200.8601,
+
+                      230.8746,
+                      230.8746,
+
+                      269.7053,
+                      269.7053,
+
+                     
+
+                       220.8601,
+                     220.8601,
+
+                      250.8746,
+                      250.8746,
+
+                      279.7053,
+                      279.7053
+  
+  };
+
+double arr_Y_y[12] = {
+  192,
+  192,
+  182,
+  182,
+  182,
+  182,
+     162,
+     162,
+     162,
+     162,
+     162,
+     162,
+
+
+};
+//红色区域存放
+#define red_postion_X arr_R_x
+#define red_postion_Y arr_R_y
+#define red_postion_Z arr_Z
+#define red_postion_R 0
+
+//绿色区域存放
+#define green_postion_X arr_G_x
+#define green_postion_Y arr_G_y
+#define green_postion_Z arr_Z
+#define green_postion_R 0
+
+//蓝色区域存放
+#define blue_postion_X arr_G_x
+#define blue_postion_Y arr_G_y
+#define blue_postion_Z arr_Z
+#define blue_postion_R 0
+
+//黄色区域存放
+#define yellow_ppostion_X arr_G_x
+#define yellow_ppostion_Y arr_G_y
+#define yellow_ppostion_Z arr_Z
+#define yellow_ppostion_R 0
+
+Pixy2 pixy;                                                                  //定义摄像头对象，调用pixy
+//发送字符串的函数
+void Send_ok(char c)  
+{
+    Serial2.write('<');  
+    Serial2.write('O');
+    Serial2.write('K');
+    Serial2.write(':');
+    Serial2.write(c);
+    Serial2.write('>'); 
+  
+}
+
+void setup() {
+  Serial.begin(115200);//主控板的串口波特率 
+  Serial2.begin(9600);
+  pixy.init();//摄像头初始化
+  Dobot_Init();//主板初始化
+  Serial.println("Initialization completed...\n");
+  Dobot_SetPTPCommonParams(100,100);//设置机械臂运动比例（机械臂运行速度
+  Dobot_SetPTPCmd(JUMP_XYZ, Init_position_X, Init_position_Y, Init_position_Z, Init_position_R); //机械臂移动到物块检测位置
+  Serial.println("Starting...\n");
+//  pinMode(35,OUTPUT);
+//  digitalWrite(35,HIGH);
+//  while(1){
+//    if(!digitalRead){
+//      break;
+//      }
+//    }
+}
+
+void loop() {
+//  Serial2.write('R');
+//  delay(200);
+  uint16_t blocks; 
+  pixy.ccc.getBlocks();//检测物块，获取物块信息
+  delay(10);
+  pixy.ccc.getBlocks();
+  delay(10);
+  pixy.ccc.getBlocks();//多次检测
+  delay(10);
+  blocks = pixy.ccc.numBlocks;//物块信息使能判断，有对应颜色物块时返回1，反回0
+  Serial.print("Number of block:");
+  Serial.println(blocks);
+//  int i=0;
+//  int n=0;
+  if(blocks)
+  {
+    switch(pixy.ccc.blocks[0].m_signature){//读取获取物块的信息，返回对应的颜色标记
+      case 1:
+            Serial.println("1_red");
+            Dobot_SetPTPCmd(JUMP_XYZ, block_position_X, block_position_Y, block_position_Z, block_position_R);         //移动到物块在传送带的位置
+            Dobot_SetEndEffectorSuctionCup(true);                                                                      //打开吸盘
+            Dobot_SetPTPCmd(MOVL_XYZ, block_position_X, block_position_Y, block_position_Z+50, block_position_R);      //抓取物块并向上移动
+            delay(200);
+            Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);                 //机械臂移动到放置位置     
+            Dobot_SetEndEffectorSuctionCup(false);                                                                     //关闭吸盘，松开物块
+            Dobot_SetPTPCmd(MOVL_XYZ, des_position_X, des_position_Y, des_position_Z+35, des_position_R);              //机械臂上抬
+            Send_ok('R');                                                                                             //发送信息，告诉智能小车积木块颜色
+            Dobot_SetPTPCmd(JUMP_XYZ, Init_position_X, Init_position_Y, Init_position_Z, Init_position_R);             //回到检测位置  
+            delay(100);
+            break;
+      case 2:
+            Serial.println("2_green");
+            Dobot_SetPTPCmd(JUMP_XYZ, block_position_X, block_position_Y, block_position_Z, block_position_R);         //移动到物块在传送带的位置
+            Dobot_SetEndEffectorSuctionCup(true);                                                                      //打开吸盘
+            Dobot_SetPTPCmd(MOVL_XYZ, block_position_X, block_position_Y, block_position_Z+50, block_position_R);      //抓取物块并向上移动
+            delay(200);
+            Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);                 //机械臂移动到放置位置     
+            Dobot_SetEndEffectorSuctionCup(false);                                                                     //关闭吸盘，松开物块
+            Dobot_SetPTPCmd(MOVL_XYZ, des_position_X, des_position_Y, des_position_Z+35, des_position_R);            //机械臂上抬
+            Send_ok('G');                                                                                             //发送信息，告诉智能小车积木块颜色
+            Dobot_SetPTPCmd(JUMP_XYZ, Init_position_X, Init_position_Y, Init_position_Z, Init_position_R);             //回到检测位置  
+            delay(100);
+            break;
+      case 3:
+            Serial.println("3_bule");
+            Dobot_SetPTPCmd(JUMP_XYZ, block_position_X, block_position_Y, block_position_Z, block_position_R);         //移动到物块在传送带的位置
+            Dobot_SetEndEffectorSuctionCup(true);                                                                      //打开吸盘
+            Dobot_SetPTPCmd(MOVL_XYZ, block_position_X, block_position_Y, block_position_Z+50, block_position_R);                       //抓取物块并向上移动
+            delay(200);
+            Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);                 //机械臂移动到放置位置     
+            Dobot_SetEndEffectorSuctionCup(false);                                                                     //关闭吸盘，松开物块
+            Dobot_SetPTPCmd(MOVL_XYZ, des_position_X, des_position_Y, des_position_Z+35, des_position_R);            //机械臂上抬
+            Send_ok('B');                                                                                             //发送信息，告诉智能小车积木块颜色
+            Dobot_SetPTPCmd(JUMP_XYZ, Init_position_X, Init_position_Y, Init_position_Z, Init_position_R);             //回到检测位置  
+            delay(100);
+            break;
+      case 4:
+            Serial.println("4_yellow");
+            Dobot_SetPTPCmd(JUMP_XYZ, block_position_X, block_position_Y, block_position_Z, block_position_R);         //移动到物块在传送带的位置
+            Dobot_SetEndEffectorSuctionCup(true);                                                                      //打开吸盘
+            Dobot_SetPTPCmd(MOVL_XYZ, block_position_X, block_position_Y, block_position_Z+50, block_position_R);                       //抓取物块并向上移动
+            delay(200);
+            Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);                 //机械臂移动到放置位置     
+            Dobot_SetEndEffectorSuctionCup(false);                                                                     //关闭吸盘，松开物块
+            Dobot_SetPTPCmd(MOVL_XYZ, des_position_X, des_position_Y, des_position_Z+35, des_position_R);            //机械臂上抬
+            Send_ok('Y');                                                                                             //发送信息，告诉智能小车积木块颜色
+            Dobot_SetPTPCmd(JUMP_XYZ, Init_position_X, Init_position_Y, Init_position_Z, Init_position_R);             //回到检测位置  
+            delay(100);
+            break;
+     }
+  }
+}
