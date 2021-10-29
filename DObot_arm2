@@ -1,0 +1,90 @@
+#Magician
+#Magician
+#Magician
+import math
+
+
+
+dType.SetPTPCommonParams(api,100,100)
+dType.SetPTPJointParamsEx(api, 300, 300, 300, 300, 300, 300, 300, 300, 1)
+dType.SetPTPCommonParamsEx(api, 200, 200, 1)
+dType.SetInfraredSensor(api, 1, 1, 0)
+dType.SetPTPJumpParamsEx(api, 10, 100, 1)
+
+
+
+
+def get_color():
+    # 获取光电的值 api，x  x是端口
+    # 返回值 int
+    return dType.GetInfraredSensor(api, 1)[0]
+
+
+def move(a):
+    dType.SetPTPCmdEx(api, 0, a[0], a[1], a[2], a[3], 1)
+
+
+def move_L(a):
+    current_pose = dType.GetPose(api)
+    dType.SetPTPCmdEx(api, 2, a[0], a[1], a[2], current_pose[3], 1)
+
+
+def put(a):
+    current_pose = dType.GetPose(api)
+    dType.SetPTPCmdEx(api, 2, a[0], a[1], a[2], current_pose[3], 1)
+
+
+def gogogo(time, speed):
+   
+    STEP_PER_CRICLE = 360.0 / 1.8 * 10.0 * 16.0
+    MM_PER_CRICLE = 3.1415926535898 * 36.0
+    vel = float(speed) * STEP_PER_CRICLE / MM_PER_CRICLE
+    dType.SetEMotorEx(api, 0, 1, int(vel), 1)
+    dType.dSleep(time)
+    dType.SetEMotorEx(api, 0, 1, 0, 1)
+
+
+def open_close(i):
+    # 传送带运动 速度
+    # 返回值 null
+    dType.SetEndEffectorParamsEx(api, 59.7, 0, 0, 1)
+    dType.SetEndEffectorSuctionCupEx(api, i, 1)
+
+
+
+block_init =[194.1867, -152.3584, -16.1665, 0]
+Conveyor_init = [-23.2195, -276.3889, 13.9870, 0]
+Conveyor = [-23.2195, -276.3889, 13.9870 + 25, 0]
+block = [0, 0, 0, 0]
+
+x = 0
+y = 0
+z = 0
+
+for i in range(45):
+
+    block[0] = block_init[0] + x
+    block[1] = block_init[1] + y
+    block[2] = block_init[2] + z
+    move(block)
+    open_close(1)
+    move(Conveyor_init)
+    open_close(0)
+    move_L(Conveyor)
+    if (i >= 1):
+        while (1):
+            if (get_color() == 0):
+                break
+    gogogo(990, 56)
+
+    if (x == 75):
+        x = 0
+        y += 25
+    else:
+        x += 25
+    if (y == 125):
+        y = 0
+        z = -26
+
+
+    print(block)
