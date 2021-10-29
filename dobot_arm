@@ -1,188 +1,740 @@
-/****************************************com.lxd.*****************************************************
-**                            YBU  LXD
-**
-**                             
-**--------------------------------------------------------------------------------------------------------
-** Modify by:           
-** Modified date:       2020 10 12
-** Version:             V1.1.1
-** Descriptions:        Test
-**--------------------------------------------------------------------------------------------------------
-*********************************************************************************************************/
-
 #include "Dobot.h"
 #include <SPI.h>
 #include "Pixy2.h"
 #include "Protocol.h"
 //初始位置，既摄像头检测物块位置
-#define Init_position_X -3.5968
-#define Init_position_Y 194.6124
-#define Init_position_Z 49.9314
-#define Init_position_R 95
+#define Init_position_X 6.3974
+#define Init_position_Y 172.0111
+#define Init_position_Z 30.9999
+#define Init_position_R 0
 
 //物块在传送带的位置
-#define block_position_X -9.6609    //物体在传送带上对于机械臂X轴的坐标
-#define block_position_Y 275.0335  //物体在传送带上对于机械臂Y轴的坐标
+#define block_position_X 12.2132    //物体在传送带上对于机械臂X轴的坐标
+#define block_position_Y 272.3494  //物体在传送带上对于机械臂Y轴的坐标
 #define block_position_Z 11.5438  //物体在传送带上对于机械臂Z轴的坐标
-#define block_position_R 89.6295       //物体在传送带上对于机械臂R轴的坐标
+#define block_position_R 0       //物体在传送带上对于机械臂R轴的坐标
 
-//物块的放置位置（翻斗小车）
-#define des_position_X 25   //物体对于翻斗模块的X轴坐标
-#define des_position_Y -193 //物体对于翻斗模块的Y轴坐标
-#define des_position_Z 97   //物体对于翻斗模块的Z轴坐标
-#define des_position_R 13   //物体对于翻斗模块的R轴坐标
-
-//过渡点位置（机械臂摆动角度太大时会丢步）
-#define tmp_position_X1 190 //  过渡点X坐标
-#define tmp_position_Y1 186 //  过渡点Y坐标
-#define tmp_position_Z1 97  //  过渡点Z坐标
-#define tmp_position_R1 88
+//物块的放置位置（翻斗）
+#define des_position_X -3.573  //物体对于翻斗模块的X轴坐标
+#define des_position_Y -214.85 //物体对于翻斗模块的Y轴坐标
+#define des_position_Z 101
+//物体对于翻斗模块的Z轴坐标
+#define des_position_R 0 //物体对于翻斗模块的R轴坐
 
 //过渡点位置（机械臂摆动角度太大时会丢步）
-#define tmp_position_X2 232 //  过渡点X坐标
-#define tmp_position_Y2 -36 //  过渡点Y坐标
-#define tmp_position_Z2 97  //  过渡点Z坐标
-#define tmp_position_R2 1
-
-//过渡点位置（机械臂摆动角度太大时会丢步）
-#define tmp_position_X3 126  //  过渡点X坐标
-#define tmp_position_Y3 -173 //  过渡点Y坐标
-#define tmp_position_Z3 97   //  过渡点Z坐标
-#define tmp_position_R3 10
-
-
-
-#define standard_x 150//物体x位置
-#define standard_y  100//物体y
-#define P 0.4//比例
-
-
+#define tmp_position_X1 194 //  过渡点X坐标
+#define tmp_position_Y1 30      //  过渡点Y坐标
+#define tmp_position_Z1 102      //  过渡点Z坐标
+#define tmp_position_R1 0
 
 Pixy2 pixy; //定义摄像头对象，调用pixy
 Block b_l;
-double arr_x[6] = {198.732, 253.2497, 200.474, 259.4758, 200.4471, 262.5647};
-double arr_y[6] = {112.2621, 119.0274, 43.7427, 44.545, -18.6591, -17.7374};
-double arr_z[6] = {-44.4366, -41.6185, -44.0244, -44.0982, -40.1265, -44.5058};
-int arr_block[6] = {0, 0, 0, 0, 0, 0};
+char sendcolor;
+double arr_x[8] = {218.8258, 265.6998, 218.8258, 265.6998, 218.8258, 265.6998, 218.8258, 265.6998};
+double arr_y[8] = {112.4774, 112.7738, 61.0377, 61.0377, 16.0683, 16.0683, -40.3458, -40.3458};
+double arr_z[8] = {-43.7236, -43.7764, -43.7764, -43.7764, -43.7764, -43.7764, -43.7764, -43.7764};
+int arr_block[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+double arr_R_block[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+double arr_G_block[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+double arr_B_block[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+double arr_Y_block[12] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+uint16_t blocks;
+int first_block=1;
+double arr_R_x[12] = {161.5704,
 
+                      194.1830,
+                      
+                      228.6153,
+                      
+                      161.5704,
+                      
+                      194.1830,
+                      
+                      228.6153,
+                      
+                      161.5704,
+                      
+                      194.1830,
+                      
+                      228.6153,
+                      
+                      161.5704,
+                      
+                      194.1830,
+                      
+                      228.6153,
+};
+
+double arr_R_y[12] = {
+
+                      185.7580,
+                      185.7580,
+                      185.7580,
+                      
+                      
+                      148.1130,
+                      148.1130,
+                      148.1130,
+                      
+                      185.7580,
+                      185.7580,
+                      185.7580,
+                      
+                      148.1130,
+                      148.1130,
+                      148.1130
+                      };
+double arr_Z[12] = {-45,
+                    -45,
+                    -45, 
+                    -45, 
+                    -45,
+                    -45, 
+                    -20,
+                    -20,
+                    -20,
+                    -20,
+                    -20,
+                    -20};
+
+double arr_G_x[12] = {191.6948,
+                     
+                      232.9273,
+
+                      273.3002,
+                      191.6948,
+
+                      232.9273,
+                      273.3002,
+
+                     
+
+                      191.6948,
+                     
+                      232.9273,
+                      
+                      273.3002,
+                      191.6948,
+
+                      232.9273,
+                      273.3002
+                      };
+
+
+
+double arr_G_y[12] = {
+    118.4811,
+    118.4811,
+    118.4811,
+    
+
+    84.1153,
+    84.1153,
+    84.1153,
+    
+    118.4811,
+    118.4811,
+    118.4811,
+    
+    84.1153,
+    84.1153,
+    84.1153,
+
+};
+
+
+
+
+double arr_B_x[12] = {
+                     215.3837,
+                      
+                      244.1045,
+
+                      275.7538,
+                      215.3837,
+
+                      244.1045,
+                      275.7538,
+
+                      215.3837,
+                     
+                      244.1045,
+
+                      275.7538,
+                       215.3837,
+
+                      244.1045,
+                      275.7538,
+
+};
+double arr_B_y[12] = {
+    48.9753,
+    48.9753,
+    48.9753,
+    
+    
+    15.8823,
+    15.8823,
+    15.8823,
+
+    48.9753,
+    48.9753,
+    48.9753,
+    
+    15.8823,
+    15.8823,
+    15.8823
+
+};
+
+double arr_Y_x[12] = {
+
+                     215.3837,
+                      
+                      244.1045,
+
+                      275.7538,
+                      215.3837,
+
+                      244.1045,
+                      275.7538, 
+
+                      215.3837,
+                      
+                      244.1045,
+
+                      275.7538,
+                      215.3837,
+
+                      244.1045,
+                      275.7538,
+  };
+
+double arr_Y_y[12] = {
+      -12.1025,
+      -12.1025,
+      -12.1025,
+    
+     -41.3502,
+     -41.3502,
+     -41.3502,
+
+       -12.1025,
+      -12.1025,
+      -12.1025,
+      
+     -41.3502,
+     -41.3502,
+     -41.3502,
+
+
+};
+double put_blocks_x[2] = {-0.3447,-0.9202};
+
+double put_blocks_y[2] = {-248.6548,-199.1757};
+
+
+double put_blocks_z=99;
+
+int r_f[2] = {0, 0};
+int g_f[2] = {0, 0};
+int b_f[2] = {0, 0};
+int y_f[2] = {0, 0};
+int back_flag = 0;
+#define standard_x 176 //物体x位置
+#define standard_y 114 //物体y
+#define P 0 //比例
+
+//#define P_x = 0.3
+//#define p_y = 0.2
 //发送字符串的函数
 void Send_ok(char c)
 {
-  for (int i = 0; i < 10; i++)
-  {
+    
+//    Serial2.write('<');  
+//    Serial2.write('O');
+//    Serial2.write('K');
+//    Serial2.write(':');
     Serial2.write(c);
-  }
+//    Serial2.write('>'); 
+}
+
+int Get_glaxy_rubbishes()
+{
+    return digitalRead(45);
 }
 
 int Get_glaxy()
 {
-  return digitalRead(46);
+    return digitalRead(46);
 }
 
-void Update_blocks(){
-  delay(400);
-  pixy.ccc.getBlocks();
-  
+void Update_blocks()
+{
+    delay(600);
+    pixy.ccc.getBlocks();
 }
-void send_color(int i){
+void send_color(int i)
+{
     Serial.println(i);
-  switch (i){
+    delay(200);
+    switch (i)
+    {
 
     case 1:
-    for(int j=0;j<100;j++){
-    Serial2.write("R");
-    }
-    break;
-    case 2: 
-    
-    Serial2.write("G"); 
-    delay(100);
-     
-    break;
-    case 3:
-     for(int j=0;j<100;j++){
-     Serial2.write("B"); 
-     }
-    break;
-    case 4: 
-     for(int j=0;j<10;j++){
-    Serial2.write("Y"); 
-     }
-    break;
-    
-  }
+        for (int j = 0; j < 100; j++)
+        {
+            Serial2.write('R');
+            delay(5);
+        }
+        break;
 
-  Serial.println("SEND oK");
+    case 2:
+        for (int j = 0; j < 100; j++)
+        {
+            Serial2.write('G');
+            delay(5);
+        }
+        break;
+    case 3:
+        for (int j = 0; j < 100; j++)
+        {
+            Serial2.write('B');
+            delay(5);
+        }
+        break;
+    case 4:
+        for (int j = 0; j < 100; j++)
+        {
+            Serial2.write('Y');
+            delay(5);
+        }
+        break;
+    }
+
+    Serial.println("SEND oK");
 }
-void Put_Car(int K)
+void Put_Car(int K, int J)
 {
 
-  Dobot_SetPTPCmd(JUMP_XYZ, block_position_X + K * P , block_position_Y, block_position_Z, block_position_R);
-  Dobot_SetEndEffectorSuctionCup(true);
-  Dobot_SetPTPCmd(MOVJ_XYZ, tmp_position_X1, tmp_position_Y1, tmp_position_Z1, tmp_position_R1);
-  Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);
-  Dobot_SetEndEffectorSuctionCup(false);
-  Dobot_SetPTPCmd(MOVJ_XYZ, tmp_position_X1, tmp_position_Y1, tmp_position_Z1, tmp_position_R1);
+    Dobot_SetPTPCmd(JUMP_XYZ, block_position_X + P * K  , block_position_Y + P * J, block_position_Z, 0);
+    Dobot_SetEndEffectorSuctionCup(true);
+    Dobot_SetPTPCmd(JUMP_XYZ, tmp_position_X1, tmp_position_Y1, tmp_position_Z1, 0);
+    Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, 0);
+    Dobot_SetEndEffectorSuctionCup(false);
+    delay(500);
 }
 
 void back_init()
 {
-  Dobot_SetPTPCmd(MOVJ_XYZ, tmp_position_X1, tmp_position_Y1, tmp_position_Z1, tmp_position_R1);
-  Dobot_SetPTPCmd(JUMP_XYZ, Init_position_X, Init_position_Y, Init_position_Z, Init_position_R);
-  // Dobot_SetPTPCmd(JUMP_XYZ, Init_position_X, Init_position_Y, Init_position_Z, Init_position_R);
+    Dobot_SetPTPCmd(MOVJ_XYZ, tmp_position_X1, 10.7992, tmp_position_Z1, 0);
+    Dobot_SetPTPCmd(MOVJ_XYZ, Init_position_X, Init_position_Y, Init_position_Z, 0);
 }
 
 void Put_Car_from_Map(int i)
 {
 
-  Dobot_SetPTPCmd(JUMP_XYZ, arr_x[i], arr_y[i], arr_z[i], 0);
-  Dobot_SetEndEffectorSuctionCup(true);
-  Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);
-  Dobot_SetEndEffectorSuctionCup(false);
+    Dobot_SetPTPCmd(JUMP_XYZ, arr_x[i], arr_y[i], arr_z[i], 0);
+    Dobot_SetEndEffectorSuctionCup(true);
+    Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);
+    Dobot_SetEndEffectorSuctionCup(false);
 }
 
-void P_M_T_C(int a, int b)
-{ //地图上面拿2个一样的元素
-  Dobot_SetPTPCmd(MOVJ_XYZ, tmp_position_X1, tmp_position_Y1, tmp_position_Z1, tmp_position_R1);
-  Dobot_SetPTPCmd(JUMP_XYZ, arr_x[a], arr_y[a], arr_z[a], 0);
-  Dobot_SetEndEffectorSuctionCup(true);
-  Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);
-  Dobot_SetEndEffectorSuctionCup(false);
-  Dobot_SetPTPCmd(JUMP_XYZ, arr_x[b], arr_y[b], arr_z[b], 0);
-  Dobot_SetEndEffectorSuctionCup(true);
-  Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);
-  Dobot_SetEndEffectorSuctionCup(false);
-  
-}
+//void P_M_T_C(int a, int b)
+//{ //地图上面拿2个一样的元素
+//  Dobot_SetPTPCmd(MOVJ_XYZ, tmp_position_X1, tmp_position_Y1, tmp_position_Z1, tmp_position_R1);
+//  Dobot_SetPTPCmd(JUMP_XYZ, arr_x[a], arr_y[a], arr_z[a], 0);
+//  Dobot_SetEndEffectorSuctionCup(true);
+//  Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);
+//  Dobot_SetEndEffectorSuctionCup(false);
+//  Dobot_SetPTPCmd(JUMP_XYZ, arr_x[b], arr_y[b], arr_z[b], 0);
+//  Dobot_SetEndEffectorSuctionCup(true);
+//  Dobot_SetPTPCmd(JUMP_XYZ, des_position_X, des_position_Y, des_position_Z, des_position_R);
+//  Dobot_SetEndEffectorSuctionCup(false);
+//}
 
-
-void Put_Map(int color, int K)
+int four_max(int i1, int i2, int i3, int i4)
 {
-  int i = 0;
-  while (1)
-  {
-    if (!arr_block[i])
+
+    int max = i1;
+
+    if (i2 > max)
     {
-      arr_block[i] = color;
-      break;
+        max = i2;
     }
-    i++;
-  }
+    if (i3 > max)
+    {
+        max = i3;
+    }
+    if (i4 > max)
+    {
+        max = i4;
+    }
+
+    return max;
+}
+
+int *four_max_index()
+{
+
+    int *p;
+    p = r_f;
+
+    if ((b_f[0] + b_f[1]) > (p[0] + p[1]))
+    {
+        p = b_f;
+    }
+    if ((g_f[0] + g_f[1]) > (p[0] + p[1]))
+    {
+        p = g_f;
+    }
+    if ((y_f[0] + y_f[1]) > (p[0] + p[1]))
+    {
+        p = y_f;
+    }
+
+    return p;
+}
+
+void PutAllBlocksToCar(double *p, char color)
+{
+int send_flag=0;
+int flage = 0;
+    double *x, *y;
+    int * pc;
+    int clo = 0;
+    switch (color)
+    {
+    case 'R':
+        x = arr_R_x;
+        y = arr_R_y;
+        pc = r_f;
+        clo = 1;
+        break;
+    case 'G':
+        x = arr_G_x;
+        y = arr_G_y;
+        pc = g_f;
+        clo = 2;
+        break;
+
+    case 'B':
+        x = arr_B_x;
+        y = arr_B_y;
+        pc = b_f;
+        clo = 3;
+        break;
+    case 'Y':
+        x = arr_Y_x;
+        y = arr_Y_y;
+        pc = y_f;
+        clo = 4;
+        break;
+    }
+ 
+
+    if (pc[1])
+    {
+
+      Update_blocks();
+
+      
+        Put_Car(pixy.ccc.blocks[0].m_x - standard_x, -pixy.ccc.blocks[0].m_y + standard_y);
+        back_flag = 1;
+        send_flag = 1;
+        flage = 1;
+    }
+
+    
+int j=0;
+    for (int i = pc[0] - 1; i >= 0; i--)
+    {
+      send_flag = 1;
+      if(j>=2){
+        j=0;
+      }
+
+     
+        Dobot_SetPTPCmd(JUMP_XYZ, x[i], y[i], arr_Z[i], 0);
+        Dobot_SetEndEffectorSuctionCup(true);
+//
+//        if(clo==4){
+//
+//         Dobot_SetPTPCmd(JUMP_XYZ, x[i], y[i]-80, arr_Z[i]+80, 0);
+//          
+//        }
+        Dobot_SetPTPCmd(JUMP_XYZ, put_blocks_x[j], put_blocks_y[j], put_blocks_z+25, Init_position_R);
+        Dobot_SetEndEffectorSuctionCup(false);
+        delay(200);
+        p[i] = 1;
+        back_flag = 1;
+        j++;
+    }
+
+
+        if(back_flag==1){
+        back_init();
+        back_flag = 0;
+        }
+
+
+if(flage){
+ pixy.ccc.getBlocks(); //检测物块，获取物块信息
+    delay(10);
+    pixy.ccc.getBlocks();
+    delay(10);
+    pixy.ccc.getBlocks(); //多次检测
+    delay(10);
+    blocks = pixy.ccc.numBlocks; //物块信息使能判断，有对应颜色物块时返回1，反回0
+
+
+
+    
+    if(blocks){
+    Update_blocks();
+
+
+
+
+if(pixy.ccc.blocks[0].m_signature==clo){
+ Put_Car(pixy.ccc.blocks[0].m_x - standard_x, -pixy.ccc.blocks[0].m_y + standard_y); 
+         while(1){
+if(send_flag==1)
+    Send_ok(color);
+if(Get_glaxy()){
+  back_flag=0;
+  break;
+}
+       
+    }
+  back_init(); 
+  back_flag=1;
+
+}
+
+    }
+
+
+
+      
+    }
+
+    pc[1] = 0;
+    pc[0] = 0;
+    r_f[1] = 0;
+    g_f[1] = 0;
+    b_f[1] = 0;
+    y_f[1] = 0;
+
+
+if(send_flag==1){
+        while(1){
+//if(send_flag==1)
+    Send_ok(color);
+if(Get_glaxy()){
+  back_flag=0;
+  break;
+}
+       
+    }
+
+}
+
+
+
+    
+
+
+    
+}
+
+void put_Max_blocks()
+{
+
+    //int nowcolor = 0;
+
+    //  if(blocks){
+    //nowcolor=pixy.ccc.blocks[0].m_signature;
+    //  }
 
   
-  Dobot_SetPTPCmd(JUMP_XYZ, block_position_X + K * P, block_position_Y, block_position_Z, block_position_R);
-  Dobot_SetEndEffectorSuctionCup(true);
-  Dobot_SetPTPCmd(JUMP_XYZ, arr_x[i], arr_y[i], arr_z[i], 0);
-  Dobot_SetEndEffectorSuctionCup(false);
-  Dobot_SetPTPCmd(JUMP_XYZ, Init_position_X, Init_position_Y, Init_position_Z, Init_position_R);
-//  Serial.println("I");
-//  Serial.println(arr_block[i]);
+  
+    //  for(int i = 0; i < 12;i++){
+
+    //    if(!arr_R_block[i]){
+    //       n1++;
+    //    }
+    //    if(!arr_G_block[i]){
+    //       n2++;
+    //    }
+    //    if(!arr_B_block[i]){
+    //       n3++;
+    //    }
+
+    //  }
+    
+    pixy.ccc.getBlocks(); //多次检测
+    delay(10);
+    blocks = pixy.ccc.numBlocks; //物块信息使能判断，有对应颜色物块时返回1，反回0
+    if (blocks)
+    {
+
+        switch (pixy.ccc.blocks[0].m_signature)
+        {
+        case 1:
+            r_f[1] = 1;
+            break;
+        case 2:
+            g_f[1] = 1;
+            break;
+        case 3:
+            b_f[1] = 1;
+            break;
+        case 4:
+            y_f[1] = 1;
+            break;
+
+        default:
+            break;
+        }
+    }
+    int *p;
+    p = four_max_index();
+    Serial.println(p[0]);
+    double * endcolor;
+    if (p == r_f)
+    {
+        endcolor = arr_R_block;
+        sendcolor = 'R';
+    }
+    if (p == g_f)
+    {
+        endcolor = arr_G_block;
+        sendcolor = 'G';
+    }
+
+    if (p == b_f)
+    {
+        endcolor = arr_B_block;
+        sendcolor = 'B';
+    }
+
+    if (p == y_f)
+    {
+        endcolor = arr_Y_block;
+        sendcolor = 'Y';
+    }
+
+    //  for(int i = 0;i<4;i++){
+
+    //    if(!arr_Y_block[i]){
+    //      n4++;
+    //    }
+    //  }
+
+    //
+    //switch (nowcolor){
+    //
+    //  case 1:r++;
+    //
+    //  case 2:g++;
+    //
+    //  case 3:b++;
+    //
+    //  case 4:y_c++;
+    //}
+
+    // int order = four_max(n1,n2,n3,n4);
+    // double *endcolor;
+    //  if(n1==order-r){
+    // endcolor = arr_R_block;
+    // sendcolor = 'R';
+    //  }
+
+    //  if (n2==order-g)
+    //  {
+    //  endcolor = arr_G_block;
+    // sendcolor='G';
+    //  }
+
+    //  if(n3==order-b){
+    // endcolor = arr_B_block;
+    // sendcolor='B';
+
+    //  }
+
+    //  if(n4==order-y_c){
+    // endcolor = arr_Y_block;
+    // sendcolor = 'Y';
+
+    //  }
+//    Serial.println(sendcolor);
+
+    PutAllBlocksToCar(endcolor, sendcolor);
 }
+
+void Put_Map(int color, int K, int J)
+{
+
+    double *index;
+    double *x, *y;
+    switch (color)
+    {
+    case 1:
+        index = arr_R_block;
+        x = arr_R_x;
+        y = arr_R_y;
+        r_f[0]++;
+        break;
+    case 2:
+        index = arr_G_block;
+        x = arr_G_x;
+        y = arr_G_y;
+        g_f[0]++;
+        break;
+    case 3:
+        index = arr_B_block;
+        x = arr_B_x;
+        y = arr_B_y;
+        b_f[0]++;
+        break;
+    case 4:
+        index = arr_Y_block;
+        x = arr_Y_x;
+        y = arr_Y_y;
+        y_f[0]++;
+        break;
+
+    default:
+        break;
+    }
+    for (int i = 0; i < 12; i++)
+    {
+
+        if (index[i])
+        {
+            Dobot_SetPTPCmd(JUMP_XYZ, block_position_X + P * K, block_position_Y + P * J, block_position_Z, block_position_R);
+            Dobot_SetEndEffectorSuctionCup(true);
+            Dobot_SetPTPCmd(JUMP_XYZ, x[i], y[i], arr_Z[i], 0);
+            Dobot_SetEndEffectorSuctionCup(false);
+            Dobot_SetPTPCmd(JUMP_XYZ, Init_position_X, Init_position_Y, Init_position_Z, 0);
+            index[i] = 0;
+            Serial.println(i);
+            break;
+        }
+    }
+
+    //   Serial.println(color);
+    //   delay(200);
+    //  Serial.println(arr_block[i]);
+}
+
 void setup()
 {
   Serial.begin(115200); //主控板的串口波特率
   Dobot_Init();         //主板初始化
   pixy.init();          //摄像头初始化
+  pixy.setLamp(1,0);
   Serial.println("Initialization completed...\n");
   Dobot_SetPTPCommonParams(300, 300);                                                            //设置机械臂运动比例（机械臂运行速度
   Dobot_SetPTPLParams(300,300);
@@ -205,213 +757,74 @@ void setup()
   delay(1000);
 }
 
-
-
 void loop()
 {
-  //Serial.println(arr_block[0]);
-  uint16_t blocks;
-  pixy.ccc.getBlocks(); //检测物块，获取物块信息
-  delay(10);
-  pixy.ccc.getBlocks();
-  delay(10);
-  pixy.ccc.getBlocks(); //多次检测
-  delay(10);
-  blocks = pixy.ccc.numBlocks; //物块信息使能判断，有对应颜色物块时返回1，反回0
-  pixy.ccc.blocks[0].print();
 
-  if (!Get_glaxy())
-  {
-    int tmp = -1;
-    int i = 0;
-    int count = 0;
-    while (i < 6)
+    pixy.ccc.getBlocks(); //检测物块，获取物块信息
+    delay(10);
+    pixy.ccc.getBlocks();
+    delay(10);
+    pixy.ccc.getBlocks(); //多次检测
+    delay(10);
+    blocks = pixy.ccc.numBlocks; //物块信息使能判断，有对应颜色物块时返回1，反回0
+ //   pixy.ccc.blocks[0].print();
+//    Serial.println("loop");
+    if (!Get_glaxy())
     {
-      if (arr_block[i] == 0)
-        count++;
-      i++;
-    }
-    int flag = 1;
-    if (count == 6)
-    {
-      flag = 0;
-    }
 
-    if (flag)
-    { //数组非空
-      int index = 0;
-      int i_index = 0;
-      int map_order[2] = {-1, -1};
-      int idlenly = 0;
-      int  tmp_t = 0;
-      int i_flag = 0;
-      while (index < 6)
-      {
-        tmp_t = arr_block[index];
+//        Serial.println("car");
+
        
-       // delay(1000);
-        i_index = index + 1;
-        while (i_index < 6)
-        {
-          if (tmp_t != 0 && tmp_t == arr_block[i_index])
-          {
-//             Serial.println("tmp");
-//             Serial.println(tmp_t);
-//             Serial.println("now");
-//             Serial.println(arr_block[i_index]);
-            tmp = tmp_t;
-            map_order[0] = index;
-            map_order[1] = i_index;
-            arr_block[index] = 0;
-            arr_block[i_index] = 0;
-            idlenly = 1;
-            i_flag = 1;
-            break;
-          }
-          i_index++;
-        }
-        if(i_flag){
-          break;
-          }
+        put_Max_blocks();
         
-        index++;
-      }
-//      Serial.println("idlenly");
-//      Serial.println(idlenly);
 
-      int k_index = 0;
-      int map_t = 0;
-      int flag_t = 0;
 
-      if (idlenly)
-      { //地图上面拿给小车
-        //Serial.println("num has same color box");
 
-        P_M_T_C(map_order[0], map_order[1]);
-        send_color(tmp);
-        back_init();
-      }
 
-      else
-      { //没有相同方块 找出是否存在和当前物块颜色一样的方快
 
-        while (k_index < 6)
-        {
-         // Serial.println(blocks);
-          
-          if (blocks)
-          { //物块到了
-            if (pixy.ccc.blocks[0].m_signature == arr_block[k_index]   && arr_block[k_index] != 0)
-            {
-              flag_t = 1;
-              map_t = k_index;
-              tmp = arr_block[k_index];
-              arr_block[k_index] = 0;
-              break;
-            }
-          }
-          else
-          {                              //物块没到
-            if (arr_block[k_index]!=0){ //直接在数组里面拿一个{
-            map_t = k_index;
-            tmp = arr_block[k_index];
-            arr_block[k_index] = 0;
-            break;
-          }
-          }
-
-          k_index++;
-        }
-
-        if (blocks)
-        { //传送带物块存在
-
-          if (flag_t)
-          {
-            //取传送带 和地图
-            Update_blocks();
-            Put_Car(pixy.ccc.blocks[0].m_x - standard_x);
-            Put_Car_from_Map(map_t);
-            send_color(tmp);
-            back_init();
-            // Serial.println("take  c  and  map");
-            // delay(5000);
-          }
-
-          else
-          {
-            //数组里面没有和当前一样的颜色 传送带上面拿
-            // Serial.println("map not c");
-            // delay(5000);
-            Update_blocks();
-            Put_Car(pixy.ccc.blocks[0].m_x - standard_x);
-            send_color(tmp);
-            back_init();
-          }
-        }
-        else
-        { //传送带是空 只有数组里面有 数组里面拿
-//          Serial.println("arr has not some box ");
-//          delay(1000);
-          Put_Car_from_Map(map_t);
-          send_color(tmp);
-          back_init();
-        }
-      }
     }
+
     else
-    { //数组是空
-      //检测2次
-      int x = 0; 
-      if(blocks){
-      tmp = pixy.ccc.blocks[0].m_signature;
-      Update_blocks();
-      Put_Car(pixy.ccc.blocks[0].m_x - standard_x);
-      x = 1;
-      }
-      //Put_Car(int K);
-      // Serial.println(pixy.ccc.blocks[0].m_signature);
-      // Serial.println("wait");
-      // delay(5000);
-      pixy.ccc.getBlocks(); //检测物块，获取物块信息
-      delay(10);
-      pixy.ccc.getBlocks();
-      delay(10);
-      pixy.ccc.getBlocks(); //多次检测
-      delay(10);
-      blocks = pixy.ccc.numBlocks; //物块信息使能判断，有对应颜色物块时返回1，反回0
-     //  Serial.println(pixy.ccc.blocks[0].m_signature);
-      if (blocks)
-      {
-        if (pixy.ccc.blocks[0].m_signature == tmp)
+    {
+//        Serial.println("not car");
+        if (blocks)
         {
-          Update_blocks();
-          Put_Car(pixy.ccc.blocks[0].m_x - standard_x);
-          x = 0;
-          send_color(tmp);
-          back_init();
+           // Update_blocks();
+            Update_blocks();
+            Put_Map(pixy.ccc.blocks[0].m_signature, pixy.ccc.blocks[0].m_x - standard_x, -pixy.ccc.blocks[0].m_y + standard_y);
+        }
+    }
+
+    
+
+
+         if(Get_glaxy_rubbishes()==1){
+                  
+                  if(!r_f[0]&&!g_f[0]&&!b_f[0]&&!y_f[0]){
+                  Update_blocks();
+                  Update_blocks();
+                  blocks = pixy.ccc.numBlocks;
+                 
+                 if(!blocks){
+              
+                  if(!Get_glaxy()){
+                    
+                      while(1){
+
+                        
+                    Send_ok('H');
+                    
+                      }
+                    
+                  }
+
           
         }
-        
-      }
+                  }
 
-      if(x){
 
-        send_color(tmp);
-         back_init();
-      }
+                  
+}
 
-  
-    }
-  }
-  else
-  {
 
-    if (blocks)
-    {
-      Update_blocks();
-      Put_Map(pixy.ccc.blocks[0].m_signature, pixy.ccc.blocks[0].m_x - standard_x);
-    }
-    //放地图
-  }
 }
